@@ -784,6 +784,14 @@ flowchart TD
   <p>The webhook to support-api (<span class="mono">/v3/chats/callback</span>, basic auth) already exists for chat push; Automation 1
   reuses it. The CS <b>groups</b> (CS UK / CS France / … / CS China / CS India / CS Indonesia) already exist; the country→group
   mapping lives in support-api (<code>zendesk.group-mappings</code>). Dev webhook (search in Zendesk admin): <b>TicoChico Webhook For DEV</b> → <span class="mono">https://api-dev.ticochico.com/v3/chats/callback</span>.</p>
+
+  <div class="box"><h3>Push trigger — must fire on the AI's own replies <span class="pill new">changed · OTR-5919</span></h3>
+    <p class="sub" style="margin:1px 0 5px"><i>"Environment &lt;env&gt;: Call API when ticket is changed and new comment is public (via API)"</i> — one per env.</p>
+    <b>Change:</b> removed the condition <span class="mono">current_via_id is_not 5</span> from each env's <b>"(via API)"</b> trigger.<br>
+    <b>Why:</b> that condition suppressed <i>every</i> comment written through the Zendesk API — including the AI Agent's own replies and the escalation notice — so the app received <b>no push when the AI answered</b> (that was the bug). Human agent replies (written in the Zendesk UI) still fired it, which is why human support push always worked.<br>
+    <b>Now:</b> the trigger fires on <b>every public comment</b> (<span class="mono">comment_is_public</span> + Environment ID), and <b>support-api decides whether to push</b>: it skips only when the newest public comment's author equals the ticket's <span class="mono">requester_id</span> (the user's own message → no echo to themselves). AI reply, escalation notice and human agent reply all push.</div>
+  <div class="warn"><b>⚠ Required wherever AI is enabled.</b> Without this relax the AI's replies do not push. Applied to all four sandbox "(via API)" triggers (dev · test · uat · preprod); the <b>"(via web)"</b> sibling triggers are left unchanged. Reverting = re-add <span class="mono">current_via_id is_not 5</span>.</div>
+
   <div class="warn"><b>⚠ No <span class="mono">TW</span> mapping.</b> Pilot office is TPE (Taiwan), but <span class="mono">country_iso</span> is the
   <b>destination</b> country (FR → CS France). A chat with <span class="mono">country_iso=TW</span> fails at creation
   (<span class="mono">HTTP 500 "Group name does not exist for country iso: TW"</span>). The client must send a mapped destination.</div>
@@ -831,6 +839,7 @@ flowchart TD
     <li>Confirm the CS groups exist (names match support-api <code>group-mappings</code>).</li>
     <li>Create the <b>webhook</b> → prod support-api <span class="mono">/chats/callback</span> (basic auth).</li>
     <li>Create <b>Automation 1</b> (timeout → webhook <span class="mono">ai_escalation:true</span>), <b>Automation 2</b> (pending → add close tag), <b>Trigger</b> (tag → closing message + Closed + remove tag).</li>
+    <li><b>Relax the push trigger</b> "(via API)" — remove <span class="mono">current_via_id is_not 5</span> — so the AI's replies push (OTR-5919). Do this together with enabling AI; filtering is backend-side (skips the requester's own messages).</li>
     <li>Put the new field IDs + AI user ID into support-api prod <code>application.yaml</code> (<code>zendesk.ai.*</code>) and set <code>zendesk.ai.enabled</code> after CS sign-off (OTR-5772 DoR).</li>
   </ol>
 
