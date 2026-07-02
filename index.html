@@ -767,10 +767,10 @@ flowchart TD
     class W,ESC e; class TAG,CL c;
     </pre>
   </div>
-  <div class="box"><h3>Automation 1 — escalate on timeout <span class="pill new">NEW</span></h3>
-    <p class="sub" style="margin:1px 0 5px"><i>"KuoniTumlare AI - escalate to human when Opened, assigned to AI Agent and no activity for 1-2 hours"</i></p>
-    <b>If (all):</b> status = Open · ~1 h since update · has <span class="tag">partners_ai</span> · not <span class="tag">partners_ai_escalated</span> · assignee = AI Agent<br>
-    <b>Then:</b> notify webhook → <span class="mono">{ "ticket_id": "{{ticket.id}}", "ai_escalation": true }</span></div>
+  <div class="box"><h3>Automation 1 — escalate on timeout <span class="pill new">per-env</span></h3>
+    <p class="sub" style="margin:1px 0 5px"><i>"KuoniTumlare AI - escalate to human when Opened, assigned to AI Agent and no activity for 1-2 hours [DEV|TEST|UAT|PREPROD]"</i> — <b>one automation per env</b>.</p>
+    <b>If (all):</b> status = Open · ~1 h since update · has <span class="tag">partners_ai</span> · not <span class="tag">partners_ai_escalated</span> · assignee = AI Agent · <b>Environment ID = &lt;env&gt;</b><br>
+    <b>Then:</b> notify <b>that env's</b> webhook → <span class="mono">{ "ticket_id": "{{ticket.id}}", "ai_escalation": true }</span></div>
   <div class="box"><h3>Automation 2 — tag for auto-close <span class="pill new">NEW</span></h3>
     <p class="sub" style="margin:1px 0 5px"><i>"KuoniTumlare AI - trigger Close when requestor does not respond in 1-2 hours after the last AI Agent response"</i></p>
     <b>If (all):</b> status = Pending · ~1 h since update · has <span class="tag">partners_ai</span> · not <span class="tag">partners_ai_escalated</span> · assignee = AI Agent<br>
@@ -798,8 +798,9 @@ flowchart TD
 
   <!-- ================= TEST / UAT / PREPROD ================= -->
   <div class="env-h mid">TEST · UAT · PREPROD — deltas from dev <span class="tagN">same shared sandbox</span></div>
-  <p>These run on the <b>same sandbox instance as dev</b>, so they reuse <b>all of the above</b> — fields, AI user, tags, automations,
-  trigger, groups. <b>No new Zendesk config.</b> The only differences:</p>
+  <p>These run on the <b>same sandbox instance as dev</b>, so they reuse the <b>shared</b> pieces — fields, AI user, tags, the auto-close
+  automation + trigger, groups. The <b>per-env</b> pieces are the webhook, the two push triggers, and now the <b>escalation Automation 1</b>
+  (one per env, keyed on <span class="mono">Environment ID</span>). The differences:</p>
   <table>
     <thead><tr><th>Item</th><th>test</th><th>uat</th><th>preprod</th></tr></thead>
     <tbody>
@@ -809,9 +810,11 @@ flowchart TD
       <tr><td class="k">AI on? (support-api flag)</td><td>off</td><td><b>on</b></td><td>off</td></tr>
     </tbody>
   </table>
-  <div class="warn"><b>⚠ Shared-sandbox caveat:</b> Automation 1 can target only <b>one</b> webhook — today the <b>DEV</b> one. So a
-  timeout escalation fires to the DEV support-api regardless of which env (test/uat/preprod) the ticket belongs to. Confirm this is
-  acceptable, or the timeout flow needs per-env handling.</div>
+  <div class="box"><h3>Timeout escalation is now per-env <span class="pill new">fixed</span></h3>
+  Previously a <b>single</b> Automation 1 (no env condition) fired for all envs but targeted only the <b>DEV</b> webhook, so test/uat/preprod
+  timeouts were escalated by the dev support-api. Now there are <b>four</b> automations — one per env
+  (<span class="mono">Environment ID = dev / test / stage / preprod</span>), each notifying its <b>own</b> webhook. Each env's timeout
+  escalation is handled by its own support-api. (Note: preprod AI is currently OFF, so its automation stays dormant until AI is re-enabled there.)</div>
 
   <!-- ================= PROD ================= -->
   <div class="env-h prod">PROD — separate Zendesk, recreate everything <span class="tagN">the big one</span></div>
