@@ -436,23 +436,24 @@ sequenceDiagram
     Note over Z: Pending · AI Agent already answered
     rect rgb(255,249,230)
     Note over TL,Z: asynchronous · Zendesk-side · ~1-2 h, no reply from the tour leader
-    Note over Z: automation tags it → trigger posts closing message
-    Note over Z: Closed
-    Z-)SA: ticket updated
+    Note over Z: automation tags it → per-env trigger posts closing message · status Resolved
+    Z-)SA: ticket updated (push webhook)
     SA-)TL: push (closing message)
     Note over TL: sees the closing message
+    Note over Z: hard-close automation → Closed (~1 h later)
     end
     Note over AI: not involved
       </div></div>
       <div><p class="col-h">🎫 Zendesk — agent view</p>
         <div class="zd"><div class="hdr">Ticket · tour TPE2600… · country FR</div>
           <div class="zrow"><span class="step">1</span><div class="zbody"><span class="badge b-pend">Pending</span><span class="tgb">partners_ai</span><div class="meta">assignee: AI Agent</div></div></div>
-          <div class="zrow"><span class="step">2</span><div class="zbody"><span class="badge b-closed">Closed</span>
+          <div class="zrow"><span class="step">2</span><div class="zbody"><span class="badge b-hum">Resolved</span>
             <div class="comment by-ai"><span class="au">AI Agent</span>We hope your issues have been resolved. If you need further assistance, please raise another query.</div></div></div>
+          <div class="zrow"><span class="step">3</span><div class="zbody"><span class="badge b-closed">Closed</span><div class="meta">~1 h after Resolved</div></div></div>
         </div>
-        <p class="zd-note">Closed automatically by Zendesk after ~1-2 h with no reply.</p></div>
+        <p class="zd-note">Auto-resolved with a closing message (+ push) after ~1-2 h of silence, then hard-closed ~1 h later.</p></div>
     </div>
-    <div class="cw"><span class="ok">after ~1-2 h silence: closing message + status <b>Closed</b></span><span class="bad">closes too early · no message · reopens by itself</span></div>
+    <div class="cw"><span class="ok">after ~1-2 h silence: closing message + push · status <b>Resolved → Closed</b></span><span class="bad">closes with no message · no push · reopens by itself</span></div>
   </div>
 
   <!-- ===== S4 outside pilot ===== -->
@@ -761,10 +762,11 @@ flowchart TD
     O["Ticket: Open&lt;br/&gt;AI never replied"] -->|"~1-2 h no activity · Automation 1"| W["Webhook → support-api&lt;br/&gt;ai_escalation: true"]
     W --> ESC["support-api escalates&lt;br/&gt;→ human CS group"]
     P["Ticket: Pending&lt;br/&gt;AI answered"] -->|"~1-2 h no reply · Automation 2"| TAG["add tag&lt;br/&gt;partners_ai_trigger_close"]
-    TAG -->|"Trigger"| CL["public closing message&lt;br/&gt;+ status Closed"]
+    TAG -->|"Trigger (per-env)"| CL["public closing message&lt;br/&gt;+ status Solved&lt;br/&gt;+ push webhook"]
+    CL -->|"~1 h · hard-close automation"| CLOSED["status Closed"]
     classDef e fill:#fff0ef,stroke:#cf222e,color:#7a1118;
     classDef c fill:#eef4ff,stroke:#0969da,color:#08306b;
-    class W,ESC e; class TAG,CL c;
+    class W,ESC e; class TAG,CL,CLOSED c;
     </pre>
   </div>
   <div class="box"><h3>Automation 1 — escalate on timeout <span class="pill new">per-env</span></h3>
@@ -775,10 +777,16 @@ flowchart TD
     <p class="sub" style="margin:1px 0 5px"><i>"KuoniTumlare AI - trigger Close when requestor does not respond in 1-2 hours after the last AI Agent response"</i></p>
     <b>If (all):</b> status = Pending · ~1 h since update · has <span class="tag">partners_ai</span> · not <span class="tag">partners_ai_escalated</span> · assignee = AI Agent<br>
     <b>Then:</b> add tag <span class="tag">partners_ai_trigger_close</span></div>
-  <div class="box"><h3>Trigger — close on tag <span class="pill new">NEW</span></h3>
-    <p class="sub" style="margin:1px 0 5px"><i>"KuoniTumlare AI - react on tag partners_ai_trigger_close"</i></p>
-    <b>If:</b> tag <span class="tag">partners_ai_trigger_close</span> added &nbsp; <b>Then:</b> public closing message · status Closed · remove tag<br>
-    <span class="sub">"We hope your issues have been resolved. If you need further assistance, please raise another query."</span></div>
+  <div class="box"><h3>Trigger — close on tag <span class="pill new">per-env</span></h3>
+    <p class="sub" style="margin:1px 0 5px"><i>"KuoniTumlare AI - react on tag partners_ai_trigger_close [DEV|TEST|UAT|PREPROD]"</i> — <b>one trigger per env</b> (each fires <b>that env's</b> push webhook).</p>
+    <b>If (all):</b> tag <span class="tag">partners_ai_trigger_close</span> added · <b>Environment ID = &lt;env&gt;</b><br>
+    <b>Then:</b> public closing message · <b>status Solved</b> · <b>notify that env's push webhook</b> (so the closing message is pushed to the app) · remove tag<br>
+    <span class="sub">"We hope your issues have been resolved. If you need further assistance, please raise another query."</span>
+    <p class="sub" style="margin:5px 0 0"><b>Why Solved (not Closed):</b> Zendesk drops a public comment when a rule sets status straight to <i>Closed</i>, so the closing message + push were lost. Solved keeps the message; the ticket is hard-closed shortly after by the automation below.</p></div>
+  <div class="box"><h3>Automation 3 — hard close after Solved <span class="pill new">NEW</span></h3>
+    <p class="sub" style="margin:1px 0 5px"><i>"KuoniTumlare AI - hard close 1h after AI ticket is solved"</i></p>
+    <b>If (all):</b> status = Solved · ~1 h since update · has <span class="tag">partners_ai</span> · not <span class="tag">partners_ai_escalated</span><br>
+    <b>Then:</b> status Closed &nbsp;<span class="sub">(reaches terminal Closed ~1 h after the closing message, instead of the native 4-day rule)</span></div>
 
   <h3>5 · Webhook &amp; groups <span class="pill reuse">reused</span></h3>
   <p>The webhook to support-api (<span class="mono">/v3/chats/callback</span>, basic auth) already exists for chat push; Automation 1
@@ -841,7 +849,7 @@ flowchart TD
     <li>Define tags <span class="tag">partners_ai</span> · <span class="tag">partners_ai_escalated</span> · <span class="tag">partners_ai_trigger_close</span>.</li>
     <li>Confirm the CS groups exist (names match support-api <code>group-mappings</code>).</li>
     <li>Create the <b>webhook</b> → prod support-api <span class="mono">/chats/callback</span> (basic auth).</li>
-    <li>Create <b>Automation 1</b> (timeout → webhook <span class="mono">ai_escalation:true</span>), <b>Automation 2</b> (pending → add close tag), <b>Trigger</b> (tag → closing message + Closed + remove tag).</li>
+    <li>Create <b>Automation 1</b> per-env (timeout → that env's webhook <span class="mono">ai_escalation:true</span>), <b>Automation 2</b> (pending → add close tag), the <b>close Trigger</b> per-env (tag + env → closing message + <b>Solved</b> + that env's push webhook + remove tag), and <b>Automation 3</b> (Solved + partners_ai + ~1 h → Closed).</li>
     <li><b>Relax the push trigger</b> "(via API)" — remove <span class="mono">current_via_id is_not 5</span> — so the AI's replies push (OTR-5919). Do this together with enabling AI; filtering is backend-side (skips the requester's own messages).</li>
     <li>Put the new field IDs + AI user ID into support-api prod <code>application.yaml</code> (<code>zendesk.ai.*</code>) and set <code>zendesk.ai.enabled</code> after CS sign-off (OTR-5772 DoR).</li>
   </ol>
