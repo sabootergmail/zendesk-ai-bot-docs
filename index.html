@@ -274,7 +274,7 @@ body{margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,Segoe UI
         <li>You reach a <b>human only when the AI doesn't know or has a fault</b> — that hand-over is <b>escalation</b>.</li>
         <li><b>Escalation</b> = the chat is handed to the CS team, <b>routed by the tour's destination country</b>. Four triggers: AI asks for a human · AI returns an error · AI is unreachable · no answer in time (timeout).</li>
         <li><span class="oneway"><b>Escalation is one-way</b></span> — once escalated, it never returns to the AI.</li>
-        <li><b>First-message escalation is silent</b> — if the AI escalates before it ever replied, the tour leader gets <b>no message</b>; the "forwarded to CS / business hours" note appears only after a prior AI reply.</li>
+        <li><b>Every escalation shows a message</b> (OTR-5917) — whenever the AI hands over to a human (after a reply, on the first message, or on timeout), the tour leader gets the "forwarded to CS / business hours" message + a push.</li>
         <li><b>Auto-close</b> — after an AI answer, if the tour leader goes quiet (~1-2 h) the chat closes itself with a message.</li>
       </ul>
     </div>
@@ -505,7 +505,7 @@ sequenceDiagram
           <div class="ev"><div class="bubble in">Your dinner in Toulouse is scheduled for 23 June…</div></div>
           <div class="ev"><span class="step">1</span><div class="bubble out">Can you change my hotel for tonight?</div></div>
           <div class="wait">waiting…</div>
-          <div class="ev"><span class="step">11</span><div class="bubble sys">Your enquiry has been forwarded to our local Customer Service team. Please note that responses are provided during local business hours only: Monday to Friday, 8:00 AM to 6:00 PM, excluding public holidays.<span class="push">🔔 push</span></div></div>
+          <div class="ev"><span class="step">11</span><div class="bubble sys">Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)<span class="push">🔔 push</span></div></div>
         </div></div>
       <div><p class="col-h">Flow</p><div class="mermaid">
 sequenceDiagram
@@ -542,7 +542,7 @@ sequenceDiagram
             <div class="comment by-tl"><span class="au">Tour leader</span>Can you change my hotel for tonight?</div></div></div>
           <div class="zrow"><span class="step">9</span><div class="zbody"><span class="badge b-open">Open</span><span class="badge b-hum">Escalated</span><span class="tgb">partners_ai_escalated</span><div class="meta">group: <b>CS France EN</b></div>
             <div class="comment internal">AI cannot change bookings; handing over to local CS.</div></div></div>
-          <div class="zrow"><span class="step">11</span><div class="zbody"><div class="comment by-ai"><span class="au">AI Agent</span>Your enquiry has been forwarded to our local Customer Service team. Please note that responses are provided during local business hours only: Monday to Friday, 8:00 AM to 6:00 PM, excluding public holidays.</div></div></div>
+          <div class="zrow"><span class="step">11</span><div class="zbody"><div class="comment by-ai"><span class="au">AI Agent</span>Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)</div></div></div>
         </div>
         <p class="zd-note">Escalation reassigns from the AI Agent to the country CS group.</p></div>
     </div>
@@ -552,12 +552,12 @@ sequenceDiagram
   <!-- ===== S6 handover first message silent ===== -->
   <div class="scn">
     <h3>B2 · Escalation on the first message</h3>
-    <p class="desc">The very first message is escalated to a human immediately. Because the AI never replied first, the tour leader gets <b>no message at all</b> — not even the business-hours one (that appears only after a prior AI reply, see B1).</p>
+    <p class="desc">The very first message is escalated to a human immediately. Since OTR-5917 the tour leader <b>now receives the escalation message (+ push)</b> right away — no longer silent.</p>
     <div class="grid">
       <div><p class="col-h">📱 Phone — tour leader</p>
         <div class="phone"><div class="bar"></div><div class="who">Support chat</div>
           <div class="ev"><span class="step">1</span><div class="bubble out">What is the hotel name for 22 June?</div></div>
-          <div class="wait">no new message in the chat<br>(handled by a human behind the scenes)</div>
+          <div class="ev"><span class="step">9</span><div class="bubble sys">Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)<span class="push">🔔 push</span></div></div>
         </div></div>
       <div><p class="col-h">Flow</p><div class="mermaid">
 sequenceDiagram
@@ -577,11 +577,11 @@ sequenceDiagram
     Note over TL,Z: asynchronous · the decision arrives later
     Note over AI: AI is working…
     AI->>+SA: callback: escalate (no answer)
-    SA->>+Z: reassign to destination CS queue + internal note
+    SA->>+Z: reassign to CS queue + internal note + public escalation message
     Z-->>-SA: updated
     Note over Z: Open · Human · escalated
-    SA-->>-AI: received ok
-    Note over TL: sees nothing new
+    SA-)TL: push (escalation message)
+    Note over TL: sees the escalation message
     end
       </div></div>
       <div><p class="col-h">🎫 Zendesk — agent view</p>
@@ -589,22 +589,24 @@ sequenceDiagram
           <div class="zrow"><span class="step">3</span><div class="zbody"><span class="badge b-open">Open</span><span class="tgb">partners_ai</span><div class="meta">assignee: AI Agent</div>
             <div class="comment by-tl"><span class="au">Tour leader</span>What is the hotel name for 22 June?</div></div></div>
           <div class="zrow"><span class="step">9</span><div class="zbody"><span class="badge b-open">Open</span><span class="badge b-hum">Escalated</span><span class="tgb">partners_ai_escalated</span><div class="meta">group: <b>CS France EN</b></div>
-            <div class="comment internal">User requested hotel name for June 22, but the itinerary lacks accommodation details.</div></div></div>
+            <div class="comment internal">User requested hotel name for June 22, but the itinerary lacks accommodation details.</div>
+            <div class="comment by-ai"><span class="au">AI Agent</span>Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)</div></div></div>
         </div>
-        <p class="zd-note">Escalation reassigns from the AI Agent to the country CS group; no public message (silent).</p></div>
+        <p class="zd-note">Escalation reassigns from the AI Agent to the country CS group; the TL gets the public escalation message (+ push).</p></div>
     </div>
-    <div class="cw"><span class="ok">handed to a human, TL sees nothing public; internal note = AI's reason</span><span class="bad">TL gets an empty/odd message · ticket stays on AI</span></div>
+    <div class="cw"><span class="ok">handed to a human · internal note = AI's reason · TL sees the escalation message + push</span><span class="bad">TL sees nothing / no push · ticket stays on AI</span></div>
   </div>
 
   <!-- ===== S7 timeout ===== -->
   <div class="scn">
     <h3>B3 · Escalation by timeout</h3>
-    <p class="desc">The AI never answers; after ~1-2 h a Zendesk automation escalates the chat to a human.</p>
+    <p class="desc">The AI never answers; after ~1-2 h a Zendesk automation escalates the chat to a human. Since OTR-5917 the tour leader also <b>receives the escalation message (+ push)</b>.</p>
     <div class="grid">
       <div><p class="col-h">📱 Phone — tour leader</p>
         <div class="phone"><div class="bar"></div><div class="who">Support chat</div>
           <div class="ev"><span class="step">1</span><div class="bubble out">Is the museum open on Monday?</div></div>
-          <div class="wait">no answer for ~1-2 h…<br>then picked up by a human</div>
+          <div class="wait">no answer for ~1-2 h…</div>
+          <div class="ev"><span class="step">9</span><div class="bubble sys">Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)<span class="push">🔔 push</span></div></div>
         </div></div>
       <div><p class="col-h">Flow</p><div class="mermaid">
 sequenceDiagram
@@ -624,11 +626,11 @@ sequenceDiagram
     Note over TL,Z: asynchronous · no answer → timeout automation fires after ~1-2 h
     Note over AI: stays silent
     Z->>+SA: timeout webhook (ai_escalation = true)
-    SA->>+Z: reassign to destination CS queue + note
+    SA->>+Z: reassign to CS queue + note + public escalation message
     Z-->>-SA: updated
     Note over Z: Open · Human
-    SA-->>-Z: received ok
-    Note over TL: waits, then handled by a human
+    SA-)TL: push (escalation message)
+    Note over TL: sees the escalation message, then handled by a human
     end
       </div></div>
       <div><p class="col-h">🎫 Zendesk — agent view</p>
@@ -636,11 +638,12 @@ sequenceDiagram
           <div class="zrow"><span class="step">3</span><div class="zbody"><span class="badge b-open">Open</span><span class="tgb">partners_ai</span><div class="meta">assignee: AI Agent</div>
             <div class="comment by-tl"><span class="au">Tour leader</span>Is the museum open on Monday?</div></div></div>
           <div class="zrow"><span class="step">9</span><div class="zbody"><span class="badge b-open">Open</span><span class="badge b-hum">Escalated</span><span class="tgb">partners_ai_escalated</span><div class="meta">group: <b>CS France EN</b></div>
-            <div class="comment internal">AI timeout escalation requested by Zendesk.</div></div></div>
+            <div class="comment internal">AI timeout escalation requested by Zendesk.</div>
+            <div class="comment by-ai"><span class="au">AI Agent</span>Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)</div></div></div>
         </div>
-        <p class="zd-note">After ~1-2 h with no activity, a Zendesk automation reassigns it to the country CS group.</p></div>
+        <p class="zd-note">After ~1-2 h with no activity, a Zendesk automation reassigns it to the country CS group and the TL gets the escalation message (+ push).</p></div>
     </div>
-    <div class="cw"><span class="ok">no answer + Open for ~1-2 h → handed to a human</span><span class="bad">ticket stuck on the AI forever</span></div>
+    <div class="cw"><span class="ok">no answer + Open for ~1-2 h → handed to a human · TL sees the escalation message + push</span><span class="bad">ticket stuck on the AI forever · TL sees nothing</span></div>
   </div>
 
   <!-- ===== S8 late answer ===== -->
@@ -696,7 +699,7 @@ sequenceDiagram
     <div class="msg a"><b>Auto-reply <span class="chip">non-AI ticket</span></b>
       "Thank you for your message, we will respond to you during the office hours … For any Emergency … please call us directly for support. ** Please send your message in English **"</div>
     <div class="msg b"><b>Escalation message <span class="chip">AI · only after a prior reply</span></b>
-      "Your enquiry has been forwarded to our local Customer Service team. Please note that responses are provided during local business hours only: Monday to Friday, 8:00 AM to 6:00 PM, excluding public holidays."</div>
+      "Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)"</div>
     <div class="msg c"><b>Auto-close <span class="chip">AI · no follow-up ~1-2 h</span></b>
       "We hope your issues have been resolved. If you need further assistance, please raise another query."</div>
   </div>
@@ -897,7 +900,7 @@ flowchart TD
     <tbody>
       <tr><td class="k">partnersAiTagName</td><td class="mono">partners_ai</td></tr>
       <tr><td class="k">partnersAiEscalatedTagName</td><td class="mono">partners_ai_escalated</td></tr>
-      <tr><td class="k">escalationPublicMessage</td><td>"Your enquiry has been forwarded to our local Customer Service team. Please note that responses are provided during local business hours only: Monday to Friday, 8:00 AM to 6:00 PM, excluding public holidays."</td></tr>
+      <tr><td class="k">escalationPublicMessage</td><td>"Thank you for your message. This enquiry requires assistance from one of our Customer Service specialists and has been forwarded to our local team. We will respond as soon as possible during local business hours: Monday to Friday, 8:00 AM – 6:00 PM (excluding public holidays)" <span class="pill new">OTR-5917</span> — posted on <b>every</b> escalation (after a reply, first message, timeout)</td></tr>
     </tbody>
   </table>
 
