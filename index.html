@@ -1115,6 +1115,20 @@ flowchart TD
   <p class="sub"><b>Simplifications:</b> no new webhook (reuse "API Callback") · no per-env anything (single instance) · push already works.
   The AI-delta objects are ready to create; creating them fills the 🟡 <span class="mono">ai.*Id</span> rows in table 1.</p>
 
+  <h2>5 · Secrets to create for prod <span class="pill new">fill-in</span></h2>
+  <p class="sub">Values are intentionally left <b>blank</b> here — filled during the prod release, never stored in the docs.</p>
+  <table>
+    <thead><tr><th>Secret (prod ns)</th><th>Key</th><th>Value</th><th class="st">Stav</th></tr></thead>
+    <tbody>
+      <tr><td class="k">zendesk-secret</td><td colspan="2"><b>no new keys</b> — already exists for the current chat (<span class="mono">auth_token</span>, <span class="mono">callback_username</span>, <span class="mono">callback_password</span>). support-api needs nothing new.</td><td class="st ready">✅</td></tr>
+      <tr><td class="k" rowspan="4">cs-ai-agent <span class="pill new">NEW</span></td><td class="mono">OPENAI_API_KEY</td><td class="mono">&lt;fill&gt;</td><td class="st need">🟡</td></tr>
+      <tr><td class="mono">PARTNERS_API_CLIENT_ID</td><td class="mono">&lt;fill — prod m2m, kuonitumlare Auth0&gt;</td><td class="st need">🟡</td></tr>
+      <tr><td class="mono">PARTNERS_API_CLIENT_SECRET</td><td class="mono">&lt;fill&gt;</td><td class="st need">🟡</td></tr>
+      <tr><td class="mono">AI_AGENT_CALLBACK_AUTH_CLIENT_ID / _SECRET</td><td class="mono">&lt;only if AI_AGENT_CALLBACK_AUTH_ENABLED=true — today false&gt;</td><td class="st need">🟡</td></tr>
+    </tbody>
+  </table>
+  <p class="sub">Chart has <code>secret.create:false · name:cs-ai-agent</code> → the secret is <b>externally managed</b>; it must exist in the prod namespace before the agent starts. <b>Only new secret for the whole release = <span class="mono">cs-ai-agent</span>.</b></p>
+
   <h2>Blockers (not config)</h2>
   <table>
     <thead><tr><th>Blocker</th><th>Owner</th><th class="st">Stav</th></tr></thead>
