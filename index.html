@@ -13,6 +13,9 @@
     --devbg:#eafbea; --prodbg:#fff0ef;
 --bg:#fff; --fg:#1f2328; --muted:#656d76; --line:#d0d7de; --soft:#f6f8fa;
     --ok:#1a7f37; --bad:#cf222e; --blue:#0969da; --amber:#9a6700; --amberbg:#fff8c5; --warnline:#d4a72c;
+    --devbg:#eafbea; --prodbg:#fff0ef;
+--bg:#fff; --fg:#1f2328; --muted:#656d76; --line:#d0d7de; --soft:#f6f8fa;
+    --ok:#1a7f37; --bad:#cf222e; --blue:#0969da; --amber:#9a6700; --amberbg:#fff8c5; --warnline:#d4a72c;
     --devbg:#eafbea; --prodbg:#fff0ef;}
 
 *{box-sizing:border-box}
@@ -235,6 +238,33 @@ body{margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,Segoe UI
 #sec-csaiagent .topnav a{color:#c2cbd6;text-decoration:none;font-weight:600;font-size:13px;padding:11px 13px;border-bottom:3px solid transparent;margin-bottom:-3px}
 #sec-csaiagent .topnav a:hover{color:#fff;background:#2d333b}
 #sec-csaiagent .topnav a.active{color:#fff;border-bottom-color:#fff}
+#sec-prodrelease *{box-sizing:border-box}
+#sec-prodrelease{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+#sec-prodrelease .wrap{max-width:1120px;margin:0 auto;padding:26px 22px 70px}
+#sec-prodrelease h1{font-size:24px;margin:0 0 8px}
+#sec-prodrelease h2{font-size:18px;margin:30px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line)}
+#sec-prodrelease p{margin:8px 0}
+#sec-prodrelease .sub{color:var(--muted);font-size:13.5px}
+#sec-prodrelease code{background:var(--soft);padding:1px 5px;border-radius:5px;font-size:.88em}
+#sec-prodrelease table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+#sec-prodrelease th,#sec-prodrelease td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+#sec-prodrelease th{background:var(--soft);font-weight:600}
+#sec-prodrelease td.k{font-weight:600;white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+#sec-prodrelease .mono{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+#sec-prodrelease .st{white-space:nowrap;font-weight:700;text-align:center}
+#sec-prodrelease .ready{color:var(--ok)}
+#sec-prodrelease .need{color:var(--amber)}
+#sec-prodrelease .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:20px;border:1px solid var(--line);background:var(--soft);color:var(--muted)}
+#sec-prodrelease .new{background:#dff5e1;color:#10491f;border-color:#9bd5a3}
+#sec-prodrelease .warn{border:1px dashed var(--warnline);background:var(--amberbg);border-radius:8px;padding:9px 13px;margin:12px 0;font-size:13.5px}
+#sec-prodrelease .warn b{color:#7a5b00}
+#sec-prodrelease .legend{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0;font-size:13px}
+#sec-prodrelease footer{margin-top:36px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:11px}
+#sec-prodrelease .topnav{position:sticky;top:0;z-index:50;background:#1f2328;display:flex;gap:2px;padding:0 10px;flex-wrap:wrap;align-items:center;border-bottom:3px solid #0969da;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+#sec-prodrelease .topnav .brand{color:#fff;font-weight:800;font-size:13px;padding:11px 14px 11px 4px}
+#sec-prodrelease .topnav a{color:#c2cbd6;text-decoration:none;font-weight:600;font-size:13px;padding:11px 13px;border-bottom:3px solid transparent;margin-bottom:-3px}
+#sec-prodrelease .topnav a:hover{color:#fff;background:#2d333b}
+#sec-prodrelease .topnav a.active{color:#fff;border-bottom-color:#fff}
 </style></head>
 <body>
 <nav class="onenav"><span class="brand">OTR-5733 · AI bot</span>
@@ -243,6 +273,7 @@ body{margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,Segoe UI
   <a href="#sec-zendesk">Zendesk config</a>
   <a href="#sec-supportapi">support-api config</a>
   <a href="#sec-csaiagent">cs-ai-agent config</a>
+  <a href="#sec-prodrelease">Production release</a>
 </nav>
 <section id="sec-home" class="page">
 
@@ -999,6 +1030,102 @@ flowchart TD
 
   <footer>Source: <code>ai-apps/config/csaiagent/cs-ai-agent-values-{common,&lt;env&gt;}.yaml</code> + k8s secret <code>cs-ai-agent</code> (keys only).
   cs-ai-agent app code/mock modes are in the <code>cs_ai_agent</code> repo. Verified 2026-06-29.</footer>
+</div>
+</section>
+<section id="sec-prodrelease" class="page">
+
+
+<div class="wrap">
+  <h1>Production release — AI bot</h1>
+  <p class="sub">What it takes to bring the AI support bot to <b>production</b>. Prod is a <b>separate Zendesk</b>
+  (<span class="mono">kuoni…re.zendesk.com</span>) that already runs the current non-AI chat, a <b>separate cluster</b>,
+  and the <b>prod Auth0 tenant</b> (<span class="mono">kuonitumlare</span>). Values below read from prod (Zendesk config +
+  prod logs), read-only, 2026-07-03.</p>
+
+  <div class="legend">
+    <span><span class="st ready">✅ ready</span> — we know what to do / value in hand</span>
+    <span><span class="st need">🟡 need values</span> — a value/decision still missing</span>
+  </div>
+
+  <div class="warn"><b>Keep <span class="mono">zendesk.ai.enabled = false</span> until go-live.</b> All new Zendesk objects are gated
+  on <span class="mono">partners_ai</span> (nothing in prod carries it yet) → they stay inert until the flag flips.</div>
+
+  <h2>1 · support-api (prod profile)</h2>
+  <p class="sub">New <code>zendesk:</code> / <code>zendesk.ai:</code> block in the prod profile (today it has none → would inherit sandbox).</p>
+  <table>
+    <thead><tr><th>Item</th><th>Value / action</th><th class="st">Stav</th></tr></thead>
+    <tbody>
+      <tr><td class="k">apiBasePath</td><td>prod <span class="mono">kuoni…re.zendesk.com/api/v2</span></td><td class="st ready">✅</td></tr>
+      <tr><td class="k">authToken</td><td>prod secret <span class="mono">${ZENDESK_AUTH_TOKEN}</span></td><td class="st ready">✅</td></tr>
+      <tr><td class="k">envCustomFieldId</td><td>blank → <span class="mono">isProd()</span></td><td class="st ready">✅</td></tr>
+      <tr><td class="k">callbackUsername / Password</td><td>prod secret <span class="mono">${ZENDESK_CALLBACK_*}</span></td><td class="st ready">✅</td></tr>
+      <tr><td class="k">tourCustomFieldId</td><td><span class="mono">360015105780</span> (from prod)</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">group-mappings</td><td>prod CS group ids (from prod logs)</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">ai.enabled</td><td><span class="mono">false</span> until go-live</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">ai.escalationPublicMessage</td><td>inherited (OTR-5917 text)</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">ai.agentUserId</td><td>= created AI Agent user id</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">ai.countryIsoCustomFieldId</td><td>= created Country ISO field id</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">ai.commentsRepliedByAiCustomFieldId</td><td>= created field id</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">ai.restrictToTourOfficeCodes</td><td>prod pilot office(s)</td><td class="st need">🟡</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2 · ai-apps (cs-ai-agent prod)</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Value / action</th><th class="st">Stav</th></tr></thead>
+    <tbody>
+      <tr><td class="k">PARTNERS_API_TOKEN_URL / _AUDIENCE</td><td>prod Auth0 / <span class="mono">api.emea.kuoni.int/v1/</span></td><td class="st ready">✅</td></tr>
+      <tr><td class="k">apps.csaiagent.enabled</td><td>flip <span class="mono">true</span> at go-live (gate <span class="mono">charts.prod.enabled</span>)</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">image tag</td><td>pin prod version at release</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">PARTNERS_API_BASE_URL</td><td>prod istio gateway name — confirm</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">WEAVIATE_HOST</td><td><b>prod Weaviate must be built</b> (today inherits sandbox — down)</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">secret <span class="mono">cs-ai-agent</span> (prod ns)</td><td>prod OPENAI_API_KEY + PARTNERS_API m2m + callback creds</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">policyLoader</td><td>needs prod Weaviate + prod policy seed</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">AI_AGENT_AUTH_ENABLED</td><td>decide (m2m auth for prod?)</td><td class="st need">🟡</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3 · Zendesk prod — already present <span class="pill">reuse</span></h2>
+  <p class="sub">Prod runs the current non-AI chat, so this base already exists.</p>
+  <table>
+    <thead><tr><th>Object</th><th>Prod value</th><th class="st">Stav</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Tour ID field</td><td><span class="mono">360015105780</span> (regexp)</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">CS groups (country→group)</td><td>FR 360005293640 · CH 360005294099 · UK 360005293620 · IT 360005294039 · CN 13432865177116 · ID 13432858330652 · NO 360005229539 · CZ 360005229619 · PT 360005293600</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Callback webhook</td><td>"API Callback" → <span class="mono">POST …ticochico.com/v3/chats/callback</span></td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Push triggers</td><td>"comment is public" + <span class="mono">via_id 5</span> — OTR-5919 already satisfied</td><td class="st ready">✅</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4 · Zendesk prod — AI delta to create <span class="pill new">NEW</span></h2>
+  <p class="sub">None exist today (<span class="mono">partners_ai</span> = 0). Model each on the prod instance's own objects (version-safe).</p>
+  <table>
+    <thead><tr><th>Object</th><th>Action</th><th class="st">Stav</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Country ISO field</td><td>create (routing) → id to support-api</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Comments replied by AI field</td><td>create (idempotence) → id to support-api</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">AI Agent user (admin)</td><td>create → agentUserId to support-api</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Tags partners_ai / _escalated / _trigger_close</td><td>create</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Automation 1 — timeout escalate</td><td>create → fire "API Callback" webhook, body <span class="mono">ai_escalation:true</span></td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Automation 2 — pending → add close tag</td><td>create</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Close trigger</td><td>create → reply_public (OTR-5917) + <span class="mono">solved</span> + push webhook + remove tag</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Automation 3 — hard close 1h after solved</td><td>create</td><td class="st ready">✅</td></tr>
+    </tbody>
+  </table>
+  <p class="sub"><b>Simplifications:</b> no new webhook (reuse "API Callback") · no per-env anything (single instance) · push already works.
+  The AI-delta objects are ready to create; creating them fills the 🟡 <span class="mono">ai.*Id</span> rows in table 1.</p>
+
+  <h2>Blockers (not config)</h2>
+  <table>
+    <thead><tr><th>Blocker</th><th>Owner</th><th class="st">Stav</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Prod Weaviate does not exist</td><td>infra — build (or managed); else policy questions escalate</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">support-api prod zendesk block absent</td><td>us — add prod profile</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">_normalize_tour field gap (AI quality)</td><td>AI team — before go-live</td><td class="st need">🟡</td></tr>
+    </tbody>
+  </table>
+
+  <footer>Read-only snapshot of prod config, 2026-07-03. Prod IDs/groups from <code>zendesk-config/prod/</code>. No secrets stored.</footer>
 </div>
 </section>
 <script>(function(ZM,Dg){typeof exports=="object"&&typeof module<"u"?module.exports=Dg():typeof define=="function"&&define.amd?define(Dg):(ZM=typeof globalThis<"u"?globalThis:ZM||self,ZM.mermaid=Dg())})(this,function(){var dYe,gYe;"use strict";function ZM(i){for(var a=[],u=1;u<arguments.length;u++)a[u-1]=arguments[u];var d=Array.from(typeof i=="string"?[i]:i);d[d.length-1]=d[d.length-1].replace(/\r?\n([\t ]*)$/,"");var p=d.reduce(function(y,E){var _=E.match(/\n([\t ]+|(?!\s).)/g);return _?y.concat(_.map(function(A){var P,R;return(R=(P=A.match(/[\t ]/g))===null||P===void 0?void 0:P.length)!==null&&R!==void 0?R:0})):y},[]);if(p.length){var v=new RegExp(`
