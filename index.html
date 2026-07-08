@@ -1095,7 +1095,7 @@ flowchart TD
       <tr><td class="k">Tour ID field</td><td><span class="mono">360015105780</span> (regexp)</td><td class="st done">✅</td></tr>
       <tr><td class="k">CS groups (country→group)</td><td>FR 360005293640 · CH 360005294099 · UK 360005293620 · IT 360005294039 · CN 13432865177116 · ID 13432858330652 · NO 360005229539 · CZ 360005229619 · PT 360005293600</td><td class="st done">✅</td></tr>
       <tr><td class="k">Callback webhook</td><td>"API Callback" → <span class="mono">POST …ticochico.com/v3/chats/callback</span></td><td class="st done">✅</td></tr>
-      <tr><td class="k">Push triggers</td><td>"comment is public" + <span class="mono">via_id 5</span> — OTR-5919 already satisfied</td><td class="st done">✅</td></tr>
+      <tr><td class="k">Push triggers (human replies)</td><td>existing "comment is public" triggers push <b>human agent</b> replies (via UI)</td><td class="st done">✅</td></tr>
     </tbody>
   </table>
 
@@ -1108,6 +1108,7 @@ flowchart TD
       <tr><td class="k">Comments replied by AI field</td><td>create (idempotence) → id to support-api</td><td class="st todo">🔧</td></tr>
       <tr><td class="k">AI Agent user (admin)</td><td>create → agentUserId to support-api</td><td class="st todo">🔧</td></tr>
       <tr><td class="k">Tags partners_ai / _escalated / _trigger_close</td><td>create</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">AI reply push trigger</td><td>create — the live "via API" trigger has <span class="mono">current_via_id is_not 5</span> so AI's API-posted replies don't push (<b>OTR-5919 NOT satisfied in prod</b>); add a <span class="mono">partners_ai</span>-gated push trigger</td><td class="st todo">🔧</td></tr>
       <tr><td class="k">Automation 1 — timeout escalate</td><td>create → fire "API Callback" webhook, body <span class="mono">ai_escalation:true</span></td><td class="st todo">🔧</td></tr>
       <tr><td class="k">Automation 2 — pending → add close tag</td><td>create</td><td class="st todo">🔧</td></tr>
       <tr><td class="k">Close trigger</td><td>create → reply_public (OTR-5917) + <span class="mono">solved</span> + push webhook + remove tag</td><td class="st todo">🔧</td></tr>
