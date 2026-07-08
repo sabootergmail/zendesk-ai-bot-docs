@@ -252,7 +252,8 @@ body{margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,Segoe UI
 #sec-prodrelease td.k{font-weight:600;white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12px}
 #sec-prodrelease .mono{font-family:ui-monospace,Consolas,monospace;font-size:12px}
 #sec-prodrelease .st{white-space:nowrap;font-weight:700;text-align:center}
-#sec-prodrelease .ready{color:var(--ok)}
+#sec-prodrelease .done{color:var(--ok)}
+#sec-prodrelease .todo{color:var(--blue)}
 #sec-prodrelease .need{color:var(--amber)}
 #sec-prodrelease .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:20px;border:1px solid var(--line);background:var(--soft);color:var(--muted)}
 #sec-prodrelease .new{background:#dff5e1;color:#10491f;border-color:#9bd5a3}
@@ -1043,30 +1044,31 @@ flowchart TD
   prod logs), read-only, 2026-07-03.</p>
 
   <div class="legend">
-    <span><span class="st ready">✅ ready</span> — we know what to do / value in hand</span>
-    <span><span class="st need">🟡 need values</span> — a value/decision still missing</span>
+    <span><span class="st done">✅ nastaveno</span> — už v produ je / hotové</span>
+    <span><span class="st todo">🔧 umíme, zbývá udělat</span> — hodnoty máme, jen provést</span>
+    <span><span class="st need">🟡 chybí hodnoty</span> — value/rozhodnutí chybí</span>
   </div>
 
   <div class="warn"><b>Keep <span class="mono">zendesk.ai.enabled = false</span> until go-live.</b> All new Zendesk objects are gated
   on <span class="mono">partners_ai</span> (nothing in prod carries it yet) → they stay inert until the flag flips.</div>
 
   <h2>1 · support-api (prod profile)</h2>
-  <p class="sub">New <code>zendesk:</code> / <code>zendesk.ai:</code> block in the prod profile (today it has none → would inherit sandbox).</p>
+  <p class="sub">New <code>zendesk:</code> / <code>zendesk.ai:</code> block in the prod profile (today it has <b>none</b> → the whole block is still to be written).</p>
   <table>
     <thead><tr><th>Item</th><th>Value / action</th><th class="st">Stav</th></tr></thead>
     <tbody>
-      <tr><td class="k">apiBasePath</td><td>prod <span class="mono">kuoni…re.zendesk.com/api/v2</span></td><td class="st ready">✅</td></tr>
-      <tr><td class="k">authToken</td><td>prod secret <span class="mono">${ZENDESK_AUTH_TOKEN}</span></td><td class="st ready">✅</td></tr>
-      <tr><td class="k">envCustomFieldId</td><td>blank → <span class="mono">isProd()</span></td><td class="st ready">✅</td></tr>
-      <tr><td class="k">callbackUsername / Password</td><td>prod secret <span class="mono">${ZENDESK_CALLBACK_*}</span></td><td class="st ready">✅</td></tr>
-      <tr><td class="k">tourCustomFieldId</td><td><span class="mono">360015105780</span> (from prod)</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">group-mappings</td><td>prod CS group ids (from prod logs)</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">ai.enabled</td><td><span class="mono">false</span> until go-live</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">ai.escalationPublicMessage</td><td>inherited (OTR-5917 text)</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">apiBasePath</td><td>prod <span class="mono">kuoni…re.zendesk.com/api/v2</span></td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">authToken</td><td>secret <span class="mono">${ZENDESK_AUTH_TOKEN}</span> exists; write the ref</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">envCustomFieldId</td><td>blank → <span class="mono">isProd()</span></td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">callbackUsername / Password</td><td>secret <span class="mono">${ZENDESK_CALLBACK_*}</span> exists; write the ref</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">tourCustomFieldId</td><td><span class="mono">360015105780</span> (have)</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">group-mappings</td><td>prod CS group ids (have from logs)</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">ai.enabled</td><td><span class="mono">false</span> until go-live</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">ai.escalationPublicMessage</td><td>inherited (OTR-5917 text)</td><td class="st todo">🔧</td></tr>
       <tr><td class="k">ai.agentUserId</td><td>= created AI Agent user id</td><td class="st need">🟡</td></tr>
       <tr><td class="k">ai.countryIsoCustomFieldId</td><td>= created Country ISO field id</td><td class="st need">🟡</td></tr>
       <tr><td class="k">ai.commentsRepliedByAiCustomFieldId</td><td>= created field id</td><td class="st need">🟡</td></tr>
-      <tr><td class="k">ai.restrictToTourOfficeCodes</td><td>prod pilot office(s)</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">ai.restrictToTourOfficeCodes</td><td>prod pilot office(s) — decide</td><td class="st need">🟡</td></tr>
     </tbody>
   </table>
 
@@ -1074,14 +1076,14 @@ flowchart TD
   <table>
     <thead><tr><th>Item</th><th>Value / action</th><th class="st">Stav</th></tr></thead>
     <tbody>
-      <tr><td class="k">PARTNERS_API_TOKEN_URL / _AUDIENCE</td><td>prod Auth0 / <span class="mono">api.emea.kuoni.int/v1/</span></td><td class="st ready">✅</td></tr>
-      <tr><td class="k">apps.csaiagent.enabled</td><td>flip <span class="mono">true</span> at go-live (gate <span class="mono">charts.prod.enabled</span>)</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">image tag</td><td>pin prod version at release</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">PARTNERS_API_BASE_URL</td><td>prod istio gateway name — confirm</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">PARTNERS_API_TOKEN_URL / _AUDIENCE</td><td>prod Auth0 / <span class="mono">api.emea.kuoni.int/v1/</span> — set in values-prod</td><td class="st done">✅</td></tr>
+      <tr><td class="k">apps.csaiagent.enabled</td><td>flip <span class="mono">true</span> at go-live (gate <span class="mono">charts.prod.enabled</span>)</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">image tag</td><td>pin prod version at release</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">AI_AGENT_AUTH_ENABLED</td><td>default <span class="mono">false</span> — confirm/decide (m2m for prod?)</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">PARTNERS_API_BASE_URL</td><td>prod istio gateway name — confirm value</td><td class="st need">🟡</td></tr>
       <tr><td class="k">WEAVIATE_HOST</td><td><b>prod Weaviate must be built</b> (today inherits sandbox — down)</td><td class="st need">🟡</td></tr>
-      <tr><td class="k">secret <span class="mono">cs-ai-agent</span> (prod ns)</td><td>prod OPENAI_API_KEY + PARTNERS_API m2m + callback creds</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">secret <span class="mono">cs-ai-agent</span> (prod ns)</td><td>prod OPENAI_API_KEY + PARTNERS_API m2m (see §5)</td><td class="st need">🟡</td></tr>
       <tr><td class="k">policyLoader</td><td>needs prod Weaviate + prod policy seed</td><td class="st need">🟡</td></tr>
-      <tr><td class="k">AI_AGENT_AUTH_ENABLED</td><td>decide (m2m auth for prod?)</td><td class="st need">🟡</td></tr>
     </tbody>
   </table>
 
@@ -1090,52 +1092,51 @@ flowchart TD
   <table>
     <thead><tr><th>Object</th><th>Prod value</th><th class="st">Stav</th></tr></thead>
     <tbody>
-      <tr><td class="k">Tour ID field</td><td><span class="mono">360015105780</span> (regexp)</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">CS groups (country→group)</td><td>FR 360005293640 · CH 360005294099 · UK 360005293620 · IT 360005294039 · CN 13432865177116 · ID 13432858330652 · NO 360005229539 · CZ 360005229619 · PT 360005293600</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Callback webhook</td><td>"API Callback" → <span class="mono">POST …ticochico.com/v3/chats/callback</span></td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Push triggers</td><td>"comment is public" + <span class="mono">via_id 5</span> — OTR-5919 already satisfied</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Tour ID field</td><td><span class="mono">360015105780</span> (regexp)</td><td class="st done">✅</td></tr>
+      <tr><td class="k">CS groups (country→group)</td><td>FR 360005293640 · CH 360005294099 · UK 360005293620 · IT 360005294039 · CN 13432865177116 · ID 13432858330652 · NO 360005229539 · CZ 360005229619 · PT 360005293600</td><td class="st done">✅</td></tr>
+      <tr><td class="k">Callback webhook</td><td>"API Callback" → <span class="mono">POST …ticochico.com/v3/chats/callback</span></td><td class="st done">✅</td></tr>
+      <tr><td class="k">Push triggers</td><td>"comment is public" + <span class="mono">via_id 5</span> — OTR-5919 already satisfied</td><td class="st done">✅</td></tr>
     </tbody>
   </table>
 
   <h2>4 · Zendesk prod — AI delta to create <span class="pill new">NEW</span></h2>
-  <p class="sub">None exist today (<span class="mono">partners_ai</span> = 0). Model each on the prod instance's own objects (version-safe).</p>
+  <p class="sub">None exist today (<span class="mono">partners_ai</span> = 0). Model each on the prod instance's own objects (version-safe). We know exactly what to do → creating them fills the 🟡 <span class="mono">ai.*Id</span> rows in table 1.</p>
   <table>
     <thead><tr><th>Object</th><th>Action</th><th class="st">Stav</th></tr></thead>
     <tbody>
-      <tr><td class="k">Country ISO field</td><td>create (routing) → id to support-api</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Comments replied by AI field</td><td>create (idempotence) → id to support-api</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">AI Agent user (admin)</td><td>create → agentUserId to support-api</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Tags partners_ai / _escalated / _trigger_close</td><td>create</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Automation 1 — timeout escalate</td><td>create → fire "API Callback" webhook, body <span class="mono">ai_escalation:true</span></td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Automation 2 — pending → add close tag</td><td>create</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Close trigger</td><td>create → reply_public (OTR-5917) + <span class="mono">solved</span> + push webhook + remove tag</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">Automation 3 — hard close 1h after solved</td><td>create</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">Country ISO field</td><td>create (routing) → id to support-api</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">Comments replied by AI field</td><td>create (idempotence) → id to support-api</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">AI Agent user (admin)</td><td>create → agentUserId to support-api</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">Tags partners_ai / _escalated / _trigger_close</td><td>create</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">Automation 1 — timeout escalate</td><td>create → fire "API Callback" webhook, body <span class="mono">ai_escalation:true</span></td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">Automation 2 — pending → add close tag</td><td>create</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">Close trigger</td><td>create → reply_public (OTR-5917) + <span class="mono">solved</span> + push webhook + remove tag</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">Automation 3 — hard close 1h after solved</td><td>create</td><td class="st todo">🔧</td></tr>
     </tbody>
   </table>
-  <p class="sub"><b>Simplifications:</b> no new webhook (reuse "API Callback") · no per-env anything (single instance) · push already works.
-  The AI-delta objects are ready to create; creating them fills the 🟡 <span class="mono">ai.*Id</span> rows in table 1.</p>
+  <p class="sub"><b>Simplifications:</b> no new webhook (reuse "API Callback") · no per-env anything (single instance) · push already works.</p>
 
   <h2>5 · Secrets to create for prod <span class="pill new">fill-in</span></h2>
-  <p class="sub">Values are intentionally left <b>blank</b> here — filled during the prod release, never stored in the docs.</p>
+  <p class="sub">Values intentionally <b>blank</b> — filled during the prod release, never stored in the docs.</p>
   <table>
     <thead><tr><th>Secret (prod ns)</th><th>Key</th><th>Value</th><th class="st">Stav</th></tr></thead>
     <tbody>
-      <tr><td class="k">zendesk-secret</td><td colspan="2"><b>no new keys</b> — already exists for the current chat (<span class="mono">auth_token</span>, <span class="mono">callback_username</span>, <span class="mono">callback_password</span>). support-api needs nothing new.</td><td class="st ready">✅</td></tr>
+      <tr><td class="k">zendesk-secret</td><td colspan="2"><b>no new keys</b> — already exists for the current chat (<span class="mono">auth_token</span>, <span class="mono">callback_username</span>, <span class="mono">callback_password</span>). support-api needs nothing new.</td><td class="st done">✅</td></tr>
       <tr><td class="k" rowspan="4">cs-ai-agent <span class="pill new">NEW</span></td><td class="mono">OPENAI_API_KEY</td><td class="mono">&lt;fill&gt;</td><td class="st need">🟡</td></tr>
       <tr><td class="mono">PARTNERS_API_CLIENT_ID</td><td class="mono">&lt;fill — prod m2m, kuonitumlare Auth0&gt;</td><td class="st need">🟡</td></tr>
       <tr><td class="mono">PARTNERS_API_CLIENT_SECRET</td><td class="mono">&lt;fill&gt;</td><td class="st need">🟡</td></tr>
       <tr><td class="mono">AI_AGENT_CALLBACK_AUTH_CLIENT_ID / _SECRET</td><td class="mono">&lt;only if AI_AGENT_CALLBACK_AUTH_ENABLED=true — today false&gt;</td><td class="st need">🟡</td></tr>
     </tbody>
   </table>
-  <p class="sub">Chart has <code>secret.create:false · name:cs-ai-agent</code> → the secret is <b>externally managed</b>; it must exist in the prod namespace before the agent starts. <b>Only new secret for the whole release = <span class="mono">cs-ai-agent</span>.</b></p>
+  <p class="sub">Chart has <code>secret.create:false · name:cs-ai-agent</code> → externally managed; must exist in the prod ns before the agent starts. <b>Only new secret for the whole release = <span class="mono">cs-ai-agent</span>.</b></p>
 
   <h2>Blockers (not config)</h2>
   <table>
     <thead><tr><th>Blocker</th><th>Owner</th><th class="st">Stav</th></tr></thead>
     <tbody>
       <tr><td class="k">Prod Weaviate does not exist</td><td>infra — build (or managed); else policy questions escalate</td><td class="st need">🟡</td></tr>
-      <tr><td class="k">support-api prod zendesk block absent</td><td>us — add prod profile</td><td class="st ready">✅</td></tr>
-      <tr><td class="k">_normalize_tour field gap (AI quality)</td><td>AI team — before go-live</td><td class="st need">🟡</td></tr>
+      <tr><td class="k">support-api prod zendesk block absent</td><td>us — add prod profile</td><td class="st todo">🔧</td></tr>
+      <tr><td class="k">_normalize_tour field gap (AI quality)</td><td>AI team — before go-live</td><td class="st todo">🔧</td></tr>
     </tbody>
   </table>
 
